@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Hospital & Medical Theme (Clean, Trustworthy, Light) */
+  --primary-color: #0284c7; /* Sky blue - trust and calm */
+  --primary-hover: #0369a1;
+  --secondary-color: #0f766e; /* Teal - medical feel */
+  
+  --bg-color: #f8fafc; /* Very light cool gray for app background */
+  --surface-color: #ffffff; /* White for cards/containers */
+  
+  --text-main: #334155; /* Slate 700 - softer than pure black */
+  --text-muted: #64748b; /* Slate 500 */
+  --text-inverse: #ffffff;
+  
+  --border-color: #e2e8f0;
+  --border-color-focus: #bae6fd;
+  
+  /* Status Colors */
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  
+  /* Utilities */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  --font-family: 'Inter', sans-serif;
+  --transition: all 0.2s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}

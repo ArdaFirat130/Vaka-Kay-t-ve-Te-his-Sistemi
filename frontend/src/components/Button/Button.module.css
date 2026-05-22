@@ -1,0 +1,122 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  gap: 0.5rem;
+  outline: none;
+  user-select: none;
+}
+
+.button:focus-visible {
+  box-shadow: 0 0 0 3px var(--border-color-focus);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Variants */
+.primary {
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+.primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.secondary {
+  background-color: var(--surface-color);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+.secondary:hover:not(:disabled) {
+  background-color: var(--bg-color);
+  border-color: var(--text-muted);
+}
+
+.danger {
+  background-color: var(--danger-color);
+  color: var(--text-inverse);
+}
+.danger:hover:not(:disabled) {
+  background-color: var(--danger-hover);
+}
+
+.outline {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+.outline:hover:not(:disabled) {
+  background-color: rgba(2, 132, 199, 0.05);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--text-muted);
+}
+.ghost:hover:not(:disabled) {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
+
+/* Sizes */
+.sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+.md {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
+.lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+/* Modifiers */
+.fullWidth {
+  width: 100%;
+}
+
+.loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.spinner {
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: currentColor;
+  animation: spin 1s ease-in-out infinite;
+}
+
+.secondary .spinner,
+.outline .spinner,
+.ghost .spinner {
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--primary-color);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

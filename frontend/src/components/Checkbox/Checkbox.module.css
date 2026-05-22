@@ -1,0 +1,103 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: var(--font-family);
+}
+
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkboxControl {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--surface-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  margin-top: 0.125rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.checkIcon {
+  color: white;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input:checked + .checkboxControl {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.input:checked + .checkboxControl .checkIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.input:focus-visible + .checkboxControl {
+  box-shadow: 0 0 0 3px var(--border-color-focus);
+}
+
+.input:disabled + .checkboxControl {
+  background-color: var(--bg-color);
+  border-color: var(--border-color);
+  cursor: not-allowed;
+}
+
+.input:disabled:checked + .checkboxControl .checkIcon {
+  color: var(--text-muted);
+}
+
+.hasError + .checkboxControl {
+  border-color: var(--danger-color);
+}
+
+.labelWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  cursor: pointer;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.input:disabled ~ .labelWrapper .label {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.description {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: var(--danger-color);
+  font-weight: 500;
+  margin-top: 0.125rem;
+}

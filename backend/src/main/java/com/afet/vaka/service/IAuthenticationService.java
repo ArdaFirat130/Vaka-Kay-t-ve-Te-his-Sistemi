@@ -5,6 +5,8 @@ import com.afet.vaka.dto.AuthResponse;
 
 public interface IAuthenticationService {
     
-    public AuthResponse authenticate(AuthRequest input, String clientIp);
+    AuthResponse authenticate(AuthRequest input, String clientIp);
+    void forgotPassword(String email);
+    void resetPassword(String token, String newPassword);
     
 }

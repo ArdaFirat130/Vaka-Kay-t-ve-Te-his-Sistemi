@@ -13,6 +13,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.afet.vaka.service.impl.UserServiceImpl.UserDetailsImpl;
+import com.afet.vaka.repository.UserRepository;
+import com.afet.vaka.repository.PasswordResetTokenRepository;
+import com.afet.vaka.model.PasswordResetToken;
+import com.afet.vaka.model.User;
+import com.afet.vaka.service.IEmailService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class AuthenticationServiceImpl implements IAuthenticationService {
@@ -28,6 +37,18 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Autowired
     private IRefreshTokenService refreshTokenService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private IEmailService emailService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public AuthResponse authenticate(AuthRequest input, String clientIp) {
@@ -59,5 +80,43 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             loginAttemptService.loginFailed(clientIp);
             throw new RuntimeException("E-posta veya şifre hatalı");
         }
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı."));
+
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .isUsed(false)
+                .build();
+
+        passwordResetTokenRepository.save(resetToken);
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Geçersiz veya süresi dolmuş bağlantı."));
+
+        if (resetToken.isUsed()) {
+            throw new RuntimeException("Bu bağlantı daha önce kullanılmış.");
+        }
+
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Bu bağlantının süresi dolmuş.");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
     }
 }

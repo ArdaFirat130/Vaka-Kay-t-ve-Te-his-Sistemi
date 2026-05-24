@@ -59,11 +59,13 @@ C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\e
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\controller\impl\RestAuthenticationControllerImpl.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\dto\SendOtpRequest.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\dto\TokenRefreshRequest.java
+C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\model\PasswordResetToken.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\service\impl\RefreshTokenServiceImpl.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\dto\AcceptInvitationRequest.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\jwt\JwtUtils.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\model\enums\EyeColor.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\controller\impl\RestStatisticsControllerImpl.java
+C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\repository\PasswordResetTokenRepository.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\dto\DtoVictimIU.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\model\enums\SyncStatus.java
 C:\Projelerim\Vaka Kayýt ve Teþhis Sistemi\backend\src\main\java\com\afet\vaka\controller\IRestVictimController.java

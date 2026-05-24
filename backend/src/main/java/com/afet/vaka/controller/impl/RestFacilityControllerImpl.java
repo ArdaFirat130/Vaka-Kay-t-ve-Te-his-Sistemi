@@ -22,14 +22,14 @@ public class RestFacilityControllerImpl implements IRestFacilityController {
     private IFacilityService facilityService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Override
     public RootEntity<DtoFacility> createFacility(@Valid @RequestBody DtoFacilityIU input) {
         return RootEntity.ok(facilityService.createFacility(input));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Override
     public RootEntity<DtoFacility> updateFacility(@PathVariable UUID id, @Valid @RequestBody DtoFacilityIU input) {
         return RootEntity.ok(facilityService.updateFacility(id, input));

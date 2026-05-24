@@ -4,11 +4,14 @@ import axios from 'axios';
 import styles from './AdminDashboardPage.module.css';
 import { useAppSelector, useAppDispatch } from '../../../hooks/reduxHooks';
 import { logout } from '../../auth/authSlice';
+import { FacilityModal } from '../components/FacilityModal/FacilityModal';
 
-// Mocked Facility List - Later this should be fetched from an API
-const MOCK_FACILITIES = [
-  { id: 'c2a297e2-45e0-4720-9426-1d15c71b6264', name: 'Merkez Devlet Hastanesi' }
-];
+interface Facility {
+  id: string;
+  name: string;
+  type: string;
+  address: string;
+}
 
 interface StatsData {
   totalVictims: number;
@@ -26,7 +29,10 @@ export const AdminDashboardPage: React.FC = () => {
   const isSuperAdmin = role === 'ROLE_SUPER_ADMIN';
 
   const [email, setEmail] = useState('');
-  const [facilityId, setFacilityId] = useState(MOCK_FACILITIES[0].id);
+  const [facilityId, setFacilityId] = useState('');
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
+  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [targetRole, setTargetRole] = useState('PERSONNEL');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -39,7 +45,25 @@ export const AdminDashboardPage: React.FC = () => {
     if (!isSuperAdmin || (isSuperAdmin && false)) { 
       fetchStats();
     }
+    if (isSuperAdmin) {
+      fetchFacilities();
+    }
   }, [isSuperAdmin]);
+
+  const fetchFacilities = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8080/api/v1/facilities', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFacilities(response.data.payload || []);
+      if (response.data.payload && response.data.payload.length > 0) {
+        setFacilityId(response.data.payload[0].id);
+      }
+    } catch (error) {
+      console.error('Tesisler yüklenirken hata:', error);
+    }
+  };
 
   const fetchStats = async () => {
     setStatsLoading(true);
@@ -178,6 +202,61 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           )}
 
+          {isSuperAdmin && (
+            <div className={styles.statsSection}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 className={styles.statsSectionTitle} style={{ margin: 0 }}>Sistemdeki Tesisler</h3>
+                <button 
+                  type="button"
+                  onClick={() => { setSelectedFacility(null); setIsFacilityModalOpen(true); }}
+                  className={styles.submitBtn}
+                  style={{ width: 'auto', padding: '0.5rem 1rem', margin: 0 }}
+                >
+                  Yeni Tesis Ekle
+                </button>
+              </div>
+              
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Tesis Adı</th>
+                      <th>Tesis Türü</th>
+                      <th>Adres</th>
+                      <th>İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {facilities.length === 0 ? (
+                      <tr><td colSpan={4} style={{ textAlign: 'center', padding: '1rem' }}>Sistemde henüz tesis bulunmuyor.</td></tr>
+                    ) : (
+                      facilities.map(fac => (
+                        <tr key={fac.id}>
+                          <td><strong>{fac.name}</strong></td>
+                          <td>
+                            {fac.type === 'HOSPITAL' ? 'Hastane' : fac.type === 'FIELD_STATION' ? 'Sahra Çadırı / Toplanma Alanı' : 'Triyaj Noktası'}
+                          </td>
+                          <td>{fac.address || '-'}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => { setSelectedFacility(fac); setIsFacilityModalOpen(true); }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500 }}
+                            >
+                              Düzenle
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className={styles.divider} />
+            </div>
+          )}
+
           <h3 className={styles.statsSectionTitle} style={{ marginTop: '1rem' }}>Personel Daveti Oluştur</h3>
           
           {status && (
@@ -220,7 +299,7 @@ export const AdminDashboardPage: React.FC = () => {
                       onChange={(e) => setFacilityId(e.target.value)}
                       className={`${styles.input} ${styles.select}`}
                     >
-                      {MOCK_FACILITIES.map(facility => (
+                      {facilities.map(facility => (
                         <option key={facility.id} value={facility.id}>
                           {facility.name}
                         </option>
@@ -267,6 +346,16 @@ export const AdminDashboardPage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      <FacilityModal
+        isOpen={isFacilityModalOpen}
+        onClose={() => setIsFacilityModalOpen(false)}
+        onSave={() => {
+          setIsFacilityModalOpen(false);
+          fetchFacilities(); // Listeyi yenile
+        }}
+        facility={selectedFacility}
+      />
     </div>
   );
 };

@@ -140,3 +140,40 @@
   margin: 0;
   line-height: 1.5;
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 1rem 0.5rem;
+  }
+  
+  .dashboardCard {
+    border-radius: 0.5rem;
+  }
+  
+  .header {
+    padding: 1.25rem 1rem;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+  }
+  
+  .content {
+    padding: 1rem;
+  }
+  
+  .tableContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+  
+  .table th, .table td {
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+}
+

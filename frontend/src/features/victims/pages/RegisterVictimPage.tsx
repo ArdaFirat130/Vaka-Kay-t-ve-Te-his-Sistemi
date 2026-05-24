@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
@@ -7,15 +7,17 @@ import { Checkbox } from '../../../components/Checkbox/Checkbox';
 import { MultiCheckbox } from '../../../components/MultiCheckbox/MultiCheckbox';
 import turkeyData from '../../../data/turkeyProvinces.json';
 import styles from './RegisterVictimPage.module.css';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { logout } from '../../auth/authSlice';
 
 export const RegisterVictimPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { register, handleSubmit, control, watch, reset, formState: { errors } } = useForm();
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedProvinceId = watch('province');
@@ -26,12 +28,79 @@ export const RegisterVictimPage = () => {
   const selectedProvinceData = turkeyData.find(p => p.id.toString() === selectedProvinceId);
   const districts = selectedProvinceData ? selectedProvinceData.districts : [];
 
+  useEffect(() => {
+    if (id) {
+      const token = localStorage.getItem('token');
+      axios.get(`http://localhost:8080/api/v1/victims/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        const v = res.data.payload;
+        // İsimleri ID'lere dönüştür (form için)
+        const pData = turkeyData.find(p => p.name === v.province);
+        const provinceId = pData ? pData.id.toString() : '';
+        const districtId = pData ? pData.districts.find((d: any) => d.name === v.district)?.id.toString() || '' : '';
+
+        reset({
+          ...v,
+          province: provinceId,
+          district: districtId,
+          upperClothingType: v.upperClothingType?.[0] || '',
+          lowerClothingType: v.lowerClothingType?.[0] || '',
+        });
+        if (v.photoUrl) setPhotoBase64(v.photoUrl);
+      })
+      .catch(err => {
+        console.error('Vaka bilgileri alınamadı:', err);
+        alert('Vaka bilgileri alınamadı.');
+        navigate('/victims');
+      });
+    }
+  }, [id, reset, navigate]);
+
+  const blurImage = (base64Image: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        
+        // Çok büyük fotoğraflarda blur zayıf kalmasın diye önce resmi küçültüyoruz (Max 400px)
+        const MAX_SIZE = 400;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height && width > MAX_SIZE) {
+          height = Math.round(height * (MAX_SIZE / width));
+          width = MAX_SIZE;
+        } else if (height > MAX_SIZE) {
+          width = Math.round(width * (MAX_SIZE / height));
+          height = MAX_SIZE;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Yüz hatlarının hafifçe belli olması için blur seviyesini düşürdük
+          ctx.filter = 'blur(6px)'; 
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        } else {
+          resolve(base64Image); // Canvas desteklenmiyorsa fallback
+        }
+      };
+      img.src = base64Image;
+    });
+  };
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoBase64(reader.result as string);
+      reader.onloadend = async () => {
+        const originalBase64 = reader.result as string;
+        const blurredBase64 = await blurImage(originalBase64);
+        setPhotoBase64(blurredBase64);
       };
       reader.readAsDataURL(file);
     }
@@ -63,16 +132,23 @@ export const RegisterVictimPage = () => {
       };
 
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8080/api/v1/victims', payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-      reset();
-      setPhotoBase64(null);
+      if (id) {
+        await axios.put(`http://localhost:8080/api/v1/victims/${id}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setToastMessage('Vaka başarıyla güncellendi!');
+        setTimeout(() => { setToastMessage(null); navigate('/victims'); }, 2000);
+      } else {
+        await axios.post('http://localhost:8080/api/v1/victims', payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setToastMessage('Vaka başarıyla sisteme kaydedildi!');
+        setTimeout(() => setToastMessage(null), 3000);
+        reset();
+        setPhotoBase64(null);
+      }
     } catch (error) {
-      console.error('Kayıt başarısız:', error);
+      console.error('İşlem başarısız:', error);
       alert('Vaka kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsSubmitting(false);
@@ -84,8 +160,8 @@ export const RegisterVictimPage = () => {
       <div className={styles.header}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1>Yeni Vaka Kaydı</h1>
-            <p>Hastaneye / tesise getirilen kimliği belirsiz veya afetzede kişileri sisteme kaydedin.</p>
+            <h1>{id ? 'Vaka Güncelleme' : 'Yeni Vaka Kaydı'}</h1>
+            <p>{id ? 'Kayıtlı vaka bilgilerini güncelleyin.' : 'Hastaneye / tesise getirilen kimliği belirsiz veya afetzede kişileri sisteme kaydedin.'}</p>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <Link to="/victims" style={{ padding: '0.5rem 1rem', backgroundColor: '#3b82f6', color: 'white', textDecoration: 'none', borderRadius: '4px', fontWeight: '500' }}>
@@ -552,14 +628,14 @@ export const RegisterVictimPage = () => {
         </div>
 
         <button type="submit" disabled={isSubmitting} className={styles.submitButton}>
-          {isSubmitting ? 'Kaydediliyor...' : 'Vakayı Sisteme Kaydet'}
+          {isSubmitting ? 'İşleniyor...' : (id ? 'Vakayı Güncelle' : 'Vakayı Sisteme Kaydet')}
         </button>
 
       </form>
 
-      {showToast && (
+      {toastMessage && (
         <div className={styles.successToast}>
-          Vaka başarıyla sisteme kaydedildi!
+          {toastMessage}
         </div>
       )}
     </div>

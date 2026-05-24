@@ -50,9 +50,13 @@ public class VictimRepositoryImpl implements VictimRepositoryCustom {
             totalPossibleScore += 10;
             selectSql.append(" + CASE WHEN v.age_group = :ageGroup THEN 10.0 ");
             List<String> neighbors = getAgeGroupNeighbors(criteria.getAgeGroup());
-            if (!neighbors.isEmpty()) {
-                selectSql.append(" WHEN v.age_group IN (:ageGroupNeighbors) THEN 5.0 ");
-                selectParams.put("ageGroupNeighbors", neighbors);
+            if (neighbors.size() == 1) {
+                selectSql.append(" WHEN v.age_group = :agNeighbor1 THEN 5.0 ");
+                selectParams.put("agNeighbor1", neighbors.get(0));
+            } else if (neighbors.size() >= 2) {
+                selectSql.append(" WHEN v.age_group IN (:agNeighbor1, :agNeighbor2) THEN 5.0 ");
+                selectParams.put("agNeighbor1", neighbors.get(0));
+                selectParams.put("agNeighbor2", neighbors.get(1));
             }
             selectSql.append(" ELSE 0.0 END ");
             selectParams.put("ageGroup", criteria.getAgeGroup().name());
@@ -141,10 +145,6 @@ public class VictimRepositoryImpl implements VictimRepositoryCustom {
         selectSql.append(") AS raw_score FROM afet.victims v ");
         
         String finalSql = selectSql.toString() + whereSql.toString() + " ORDER BY raw_score DESC";
-        
-        if (totalPossibleScore == 0) {
-            return Page.empty(pageable);
-        }
 
         // Execute count query
         String countSql = "SELECT COUNT(v.id) FROM afet.victims v " + whereSql.toString();

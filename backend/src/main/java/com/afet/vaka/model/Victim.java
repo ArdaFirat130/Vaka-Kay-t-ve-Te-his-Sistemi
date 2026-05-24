@@ -165,7 +165,7 @@ public class Victim extends BaseEntity {
     private List<String> spokenLanguages;
 
     // --- Photo ---
-    @Column(name = "photo_url")
+    @Column(name = "photo_url", columnDefinition = "text")
     private String photoUrl;
 
     @Column(name = "photo_hash")

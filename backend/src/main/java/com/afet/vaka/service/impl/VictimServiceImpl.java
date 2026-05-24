@@ -196,13 +196,21 @@ public class VictimServiceImpl implements IVictimService {
             Double rawScore = (Double) obj[1];
             Integer totalPossibleScore = (Integer) obj[2];
             
-            Double matchPercentage = totalPossibleScore > 0 ? (rawScore / totalPossibleScore) * 100.0 : 0.0;
+            int providedCriteriaCount = criteria.countProvidedFields();
+            int strictCriteriaCount = criteria.countStrictFields();
+            
+            // Kesin kriterler eşleştiği için her birine 10 tam puan veriyoruz
+            double totalEarned = (strictCriteriaCount * 10.0) + rawScore;
+            double totalPossible = (strictCriteriaCount * 10.0) + totalPossibleScore;
+            
+            double finalMatchPercentage = totalPossible > 0 ? (totalEarned / totalPossible) * 100.0 : 100.0;
+            int matchedCount = (int) Math.round((finalMatchPercentage / 100.0) * providedCriteriaCount);
             
             return VictimSearchResult.builder()
                     .victim(mapToDto(victim))
-                    .matchedCriteriaCount(rawScore.intValue())
-                    .totalProvidedCriteriaCount(totalPossibleScore)
-                    .matchScore(Math.round(matchPercentage * 100.0) / 100.0) // 2 decimal places
+                    .matchedCriteriaCount(matchedCount)
+                    .totalProvidedCriteriaCount(providedCriteriaCount)
+                    .matchScore(Math.round(finalMatchPercentage * 100.0) / 100.0) // 2 decimal places
                     .build();
         }).collect(Collectors.toList());
 

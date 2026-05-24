@@ -57,7 +57,6 @@ com\afet\vaka\model\enums\FacilityType.class
 com\afet\vaka\service\impl\OtpServiceImpl.class
 com\afet\vaka\dto\DtoUser.class
 com\afet\vaka\dto\VerifyOtpRequest.class
-com\afet\vaka\controller\impl\RestAuthenticationControllerImpl.class
 com\afet\vaka\dto\TokenRefreshRequest$TokenRefreshRequestBuilder.class
 com\afet\vaka\config\AppConfig.class
 com\afet\vaka\dto\DtoUser$DtoUserBuilder.class

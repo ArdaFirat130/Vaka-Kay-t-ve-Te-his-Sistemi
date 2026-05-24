@@ -243,6 +243,18 @@
 }
 
 @media (max-width: 768px) {
+  .pageContainer {
+    padding: 1rem 0.5rem;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .header {
+    padding: 1.25rem 1rem;
+  }
+
   .barsGrid {
     grid-template-columns: 1fr;
   }
@@ -279,4 +291,43 @@
   height: 1px;
   background-color: #e2e8f0;
   margin: 2rem 0;
+}
+
+/* --- TABLE CSS --- */
+.tableContainer {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: white;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th, .table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.table td {
+  font-size: 0.875rem;
+  color: #1e293b;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: #f8fafc;
 }

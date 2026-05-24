@@ -12,4 +12,6 @@ public interface IRestAuthenticationController {
     public RootEntity<AuthResponse> refreshToken(TokenRefreshRequest request);
     public RootEntity<Void> sendOtp(SendOtpRequest request);
     public RootEntity<String> verifyOtp(VerifyOtpRequest request);
+    public RootEntity<String> forgotPassword(java.util.Map<String, String> request);
+    public RootEntity<String> resetPassword(java.util.Map<String, String> request);
 }

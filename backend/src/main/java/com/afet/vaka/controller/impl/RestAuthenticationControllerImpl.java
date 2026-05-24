@@ -83,4 +83,21 @@ public class RestAuthenticationControllerImpl implements IRestAuthenticationCont
         String token = otpService.verifyOtp(request);
         return RootEntity.ok(token);
     }
+
+    @PostMapping("/forgot-password")
+    @Override
+    public RootEntity<String> forgotPassword(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        authenticationService.forgotPassword(email);
+        return RootEntity.ok("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.");
+    }
+
+    @PostMapping("/reset-password")
+    @Override
+    public RootEntity<String> resetPassword(@RequestBody java.util.Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("newPassword");
+        authenticationService.resetPassword(token, newPassword);
+        return RootEntity.ok("Şifreniz başarıyla sıfırlandı.");
+    }
 }

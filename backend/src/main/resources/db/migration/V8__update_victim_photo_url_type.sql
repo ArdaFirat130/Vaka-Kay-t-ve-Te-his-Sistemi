@@ -1,0 +1,1 @@
+ALTER TABLE victims ALTER COLUMN photo_url TYPE TEXT;

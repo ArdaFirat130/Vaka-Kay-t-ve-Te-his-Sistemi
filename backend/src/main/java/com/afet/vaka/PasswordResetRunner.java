@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-@Component
+// @Component // GÜVENLİK NEDENİYLE DEVRE DIŞI BIRAKILDI. Sadece lokal testlerde şifrenizi unutursanız açın.
 public class PasswordResetRunner implements CommandLineRunner {
 
     @Autowired

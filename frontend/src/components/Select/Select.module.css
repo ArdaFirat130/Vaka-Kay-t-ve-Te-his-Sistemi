@@ -86,3 +86,10 @@
   font-weight: 500;
   margin-top: 0.125rem;
 }
+
+/* Mobile Touch Target */
+@media (max-width: 768px) {
+  .select {
+    min-height: 44px;
+  }
+}

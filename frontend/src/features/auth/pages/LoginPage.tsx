@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { User, ShieldAlert, Phone, Mail, Lock, UserPlus } from 'lucide-react';
 import { Button } from '../../../components/Button';
@@ -113,6 +113,11 @@ export const LoginPage = () => {
                 {...regPersonnel('password', { required: 'Şifre zorunludur' })}
                 error={errPersonnel.password?.message as string}
               />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
+                <Link to="/forgot-password" style={{ fontSize: '0.875rem', color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>
+                  Şifremi Unuttum?
+                </Link>
+              </div>
               <Button type="submit" fullWidth size="lg" className={styles.submitBtn} isLoading={isLoading}>
                 Sisteme Giriş Yap
               </Button>

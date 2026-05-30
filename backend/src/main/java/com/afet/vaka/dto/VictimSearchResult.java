@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VictimSearchResult {
     private DtoVictim victim;
-    private Double matchScore; // Percentage of criteria matched (e.g., 85.5)
+    private Double matchScore;
     private Integer matchedCriteriaCount;
     private Integer totalProvidedCriteriaCount;
 }

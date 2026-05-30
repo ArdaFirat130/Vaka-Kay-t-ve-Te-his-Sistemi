@@ -24,31 +24,42 @@ public class StatisticsServiceImpl implements IStatisticsService {
         List<Victim> victims = victimRepository.findByFacilityId(facilityId);
 
         long totalVictims = victims.size();
-        long activeVictims = victims.stream().filter(v -> !v.isResolved()).count();
-        long resolvedVictims = victims.stream().filter(Victim::isResolved).count();
+        long activeVictims = 0;
+        long resolvedVictims = 0;
+        long recentVictims = 0;
 
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        long recentVictims = victims.stream()
-                .filter(v -> v.getRecordedAt() != null && v.getRecordedAt().isAfter(sevenDaysAgo))
-                .count();
 
-        Map<String, Long> genderDistribution = victims.stream()
-                .collect(Collectors.groupingBy(
-                        v -> v.getGender() != null ? v.getGender().name() : "UNKNOWN",
-                        Collectors.counting()
-                ));
+        Map<String, Long> genderDistribution = new java.util.HashMap<>();
+        Map<String, Long> healthStatusDistribution = new java.util.HashMap<>();
+        Map<String, Long> ageGroupDistribution = new java.util.HashMap<>();
 
-        Map<String, Long> healthStatusDistribution = victims.stream()
-                .collect(Collectors.groupingBy(
-                        v -> v.getHealthStatus() != null ? v.getHealthStatus().name() : "UNKNOWN",
-                        Collectors.counting()
-                ));
+        // Tüm listeyi tek bir döngüde dönerek bütün hesaplamaları yapıyoruz
+        for (Victim v : victims) {
+            // Aktif / Çözülmüş sayımı
+            if (!v.isResolved()) {
+                activeVictims++;
+            } else {
+                resolvedVictims++;
+            }
 
-        Map<String, Long> ageGroupDistribution = victims.stream()
-                .collect(Collectors.groupingBy(
-                        v -> v.getAgeGroup() != null ? v.getAgeGroup().name() : "UNKNOWN",
-                        Collectors.counting()
-                ));
+            // Son 7 gün sayımı
+            if (v.getRecordedAt() != null && v.getRecordedAt().isAfter(sevenDaysAgo)) {
+                recentVictims++;
+            }
+
+            // Cinsiyet dağılımı
+            String genderKey = v.getGender() != null ? v.getGender().name() : "UNKNOWN";
+            genderDistribution.put(genderKey, genderDistribution.getOrDefault(genderKey, 0L) + 1L);
+
+            // Sağlık durumu dağılımı
+            String healthKey = v.getHealthStatus() != null ? v.getHealthStatus().name() : "UNKNOWN";
+            healthStatusDistribution.put(healthKey, healthStatusDistribution.getOrDefault(healthKey, 0L) + 1L);
+
+            // Yaş grubu dağılımı
+            String ageKey = v.getAgeGroup() != null ? v.getAgeGroup().name() : "UNKNOWN";
+            ageGroupDistribution.put(ageKey, ageGroupDistribution.getOrDefault(ageKey, 0L) + 1L);
+        }
 
         return DtoFacilityStats.builder()
                 .totalVictims(totalVictims)

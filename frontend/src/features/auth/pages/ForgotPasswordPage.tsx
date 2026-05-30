@@ -23,7 +23,7 @@ export const ForgotPasswordPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      await axios.post('http://localhost:8080/api/v1/auth/forgot-password', { email });
+      await axios.post('/api/v1/auth/forgot-password', { email });
       setIsSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.errors?.message || 'Şifre sıfırlama işlemi başarısız oldu.');

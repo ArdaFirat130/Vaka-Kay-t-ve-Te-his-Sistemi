@@ -37,8 +37,13 @@ public class FacilityServiceImpl implements IFacilityService {
     @Override
     @Transactional
     public DtoFacility updateFacility(UUID id, DtoFacilityIU input) {
-        Facility facility = facilityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tesis bulunamadı"));
+        java.util.Optional<Facility> optionalFacility = facilityRepository.findById(id);
+        
+        if (!optionalFacility.isPresent()) {
+            throw new RuntimeException("Tesis bulunamadı");
+        }
+        
+        Facility facility = optionalFacility.get();
 
         facility.setName(input.getName());
         facility.setType(input.getType());
@@ -51,16 +56,26 @@ public class FacilityServiceImpl implements IFacilityService {
 
     @Override
     public DtoFacility getFacilityById(UUID id) {
-        Facility facility = facilityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tesis bulunamadı"));
+        java.util.Optional<Facility> optionalFacility = facilityRepository.findById(id);
+        
+        if (!optionalFacility.isPresent()) {
+            throw new RuntimeException("Tesis bulunamadı");
+        }
+        
+        Facility facility = optionalFacility.get();
         return mapToDto(facility);
     }
 
     @Override
     public List<DtoFacility> getAllFacilities() {
-        return facilityRepository.findAll().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+        List<Facility> facilities = facilityRepository.findAll();
+        List<DtoFacility> dtoList = new java.util.ArrayList<>();
+        
+        for (Facility facility : facilities) {
+            dtoList.add(mapToDto(facility));
+        }
+        
+        return dtoList;
     }
 
     private DtoFacility mapToDto(Facility facility) {

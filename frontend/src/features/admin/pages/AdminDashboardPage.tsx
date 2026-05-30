@@ -40,6 +40,10 @@ export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
+  // Personeller İçin State
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
   useEffect(() => {
     // Sadece Facility Admin (veya Super Admin eğer bir tesisi varsa) kendi tesisinin istatistiklerini görür
     if (!isSuperAdmin || (isSuperAdmin && false)) { 
@@ -48,12 +52,14 @@ export const AdminDashboardPage: React.FC = () => {
     if (isSuperAdmin) {
       fetchFacilities();
     }
+    // Personelleri her iki yönetici de kendi yetkisi çerçevesinde çeker
+    fetchUsers();
   }, [isSuperAdmin]);
 
   const fetchFacilities = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/v1/facilities', {
+      const response = await axios.get('/api/v1/facilities', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFacilities(response.data.payload || []);
@@ -65,11 +71,26 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/v1/users', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsers(response.data.payload || []);
+    } catch (error) {
+      console.error('Personeller yüklenirken hata:', error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/v1/statistics/facility/my', {
+      const response = await axios.get('/api/v1/statistics/facility/my', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(response.data.payload);
@@ -94,7 +115,7 @@ export const AdminDashboardPage: React.FC = () => {
       }
       
       const response = await axios.post(
-        'http://localhost:8080/api/v1/invitations',
+        '/api/v1/invitations',
         payload,
         {
           headers: {
@@ -256,6 +277,54 @@ export const AdminDashboardPage: React.FC = () => {
               <div className={styles.divider} />
             </div>
           )}
+
+          <div className={styles.statsSection}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 className={styles.statsSectionTitle} style={{ margin: 0 }}>Sistemdeki Personeller</h3>
+              <button 
+                type="button"
+                onClick={fetchUsers}
+                className={styles.submitBtn}
+                style={{ width: 'auto', padding: '0.5rem 1rem', margin: 0, backgroundColor: '#10b981' }}
+              >
+                Yenile
+              </button>
+            </div>
+            
+            <div className={styles.tableContainer}>
+              {usersLoading ? (
+                <div className={styles.spinner} style={{ borderColor: 'blue', margin: '2rem auto' }} />
+              ) : (
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>E-posta Adresi</th>
+                      <th>Rol</th>
+                      <th>Görev Yaptığı Tesis</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.length === 0 ? (
+                      <tr><td colSpan={3} style={{ textAlign: 'center', padding: '1rem' }}>Sistemde personel bulunmuyor.</td></tr>
+                    ) : (
+                      users.map((user: any) => (
+                        <tr key={user.id}>
+                          <td><strong>{user.email}</strong></td>
+                          <td>
+                            {user.role === 'SUPER_ADMIN' ? 'Sistem Yöneticisi' : 
+                             user.role === 'FACILITY_ADMIN' ? 'Hastane Yöneticisi' : 'Personel'}
+                          </td>
+                          <td>{user.facility ? user.facility.name : '-'}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            
+            <div className={styles.divider} />
+          </div>
 
           <h3 className={styles.statsSectionTitle} style={{ marginTop: '1rem' }}>Personel Daveti Oluştur</h3>
           

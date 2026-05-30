@@ -44,12 +44,12 @@ export const FacilityModal: React.FC<FacilityModalProps> = ({ isOpen, onClose, o
 
       if (facility?.id) {
         // Düzenleme
-        await axios.put(`http://localhost:8080/api/v1/facilities/${facility.id}`, payload, {
+        await axios.put(`/api/v1/facilities/${facility.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
         // Yeni Kayıt
-        await axios.post('http://localhost:8080/api/v1/facilities', payload, {
+        await axios.post('/api/v1/facilities', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }

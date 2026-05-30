@@ -38,8 +38,13 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
     public RefreshToken createRefreshToken(UUID userId) {
         RefreshToken refreshToken = new RefreshToken();
 
-        refreshToken.setUser(userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXIST, "Kullanıcı bulunamadı"))));
+        Optional<com.afet.vaka.model.User> userOpt = userRepository.findById(userId);
+        
+        if (!userOpt.isPresent()) {
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXIST, "Kullanıcı bulunamadı"));
+        }
+        
+        refreshToken.setUser(userOpt.get());
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
 
@@ -59,8 +64,12 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
     @Override
     @Transactional
     public int deleteByUserId(UUID userId) {
-        return refreshTokenRepository.deleteByUser(userRepository.findById(userId).orElseThrow(
-                () -> new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXIST, "Kullanıcı bulunamadı"))
-        ));
+        Optional<com.afet.vaka.model.User> userOpt = userRepository.findById(userId);
+        
+        if (!userOpt.isPresent()) {
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXIST, "Kullanıcı bulunamadı"));
+        }
+        
+        return refreshTokenRepository.deleteByUser(userOpt.get());
     }
 }

@@ -40,12 +40,18 @@ public class OtpServiceImpl implements IOtpService {
         String nationalIdHash = hashData(request.getNationalId());
 
         Optional<RelativeSession> existingSession = relativeSessionRepository.findByNationalIdHashAndPhoneHash(nationalIdHash, phoneHash);
-        RelativeSession session = existingSession.orElseGet(() -> RelativeSession.builder()
-                .phoneHash(phoneHash)
-                .nationalIdHash(nationalIdHash)
-                .fullName(request.getFullName())
-                .relationship(request.getRelationship())
-                .build());
+        RelativeSession session;
+        
+        if (existingSession.isPresent()) {
+            session = existingSession.get();
+        } else {
+            session = RelativeSession.builder()
+                    .phoneHash(phoneHash)
+                    .nationalIdHash(nationalIdHash)
+                    .fullName(request.getFullName())
+                    .relationship(request.getRelationship())
+                    .build();
+        }
 
         String otpCode = generateOtp();
         session.setOtpCode(otpCode); // In production, consider hashing the OTP code as well
@@ -66,8 +72,13 @@ public class OtpServiceImpl implements IOtpService {
         String phoneHash = hashData(request.getPhoneNumber());
         String nationalIdHash = hashData(request.getNationalId());
 
-        RelativeSession session = relativeSessionRepository.findByNationalIdHashAndPhoneHash(nationalIdHash, phoneHash)
-                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXIST, "Geçerli bir OTP isteği bulunamadı.")));
+        Optional<RelativeSession> sessionOpt = relativeSessionRepository.findByNationalIdHashAndPhoneHash(nationalIdHash, phoneHash);
+        
+        if (!sessionOpt.isPresent()) {
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXIST, "Geçerli bir OTP isteği bulunamadı."));
+        }
+        
+        RelativeSession session = sessionOpt.get();
 
         if (session.getOtpExpiresAt() == null || session.getOtpExpiresAt().isBefore(LocalDateTime.now())) {
             throw new BaseException(new ErrorMessage(MessageType.UNAUTHORIZED, "OTP kodunun süresi dolmuş."));

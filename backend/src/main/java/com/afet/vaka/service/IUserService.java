@@ -14,6 +14,6 @@ public interface IUserService {
     
     public DtoUser getUserById(UUID id);
     
-    public List<DtoUser> getAllUsers();
+    public List<DtoUser> getAllUsers(com.afet.vaka.service.impl.UserServiceImpl.UserDetailsImpl currentUser);
     
 }

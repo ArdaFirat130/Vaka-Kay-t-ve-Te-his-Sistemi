@@ -50,24 +50,35 @@ public class RestAuthenticationControllerImpl implements IRestAuthenticationCont
     public RootEntity<AuthResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();
 
-        return refreshTokenService.findByToken(requestRefreshToken)
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    String token = jwtUtils.generateTokenFromUsername(user.getEmail());
-                    
-                    AuthResponse response = AuthResponse.builder()
-                            .token(token)
-                            .refreshToken(requestRefreshToken)
-                            .userId(user.getId())
-                            .email(user.getEmail())
-                            .role(user.getRole().name())
-                            .facilityId(user.getFacility() != null ? user.getFacility().getId() : null)
-                            .build();
-                    
-                    return RootEntity.ok(response);
-                })
-                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.UNAUTHORIZED, "Refresh token geçersiz veya bulunamadı!")));
+        // 1. Veritabanında token'ı ara
+        java.util.Optional<RefreshToken> tokenOptional = refreshTokenService.findByToken(requestRefreshToken);
+
+        // 2. Eğer token bulunamazsa hata fırlat
+        if (!tokenOptional.isPresent()) {
+            throw new BaseException(new ErrorMessage(MessageType.UNAUTHORIZED, "Refresh token geçersiz veya bulunamadı!"));
+        }
+
+        // 3. Token'ı al ve süresini kontrol et
+        RefreshToken refreshToken = tokenOptional.get();
+        RefreshToken validToken = refreshTokenService.verifyExpiration(refreshToken);
+
+        // 4. Token kime aitse o kullanıcıyı al
+        com.afet.vaka.model.User user = validToken.getUser();
+
+        // 5. Yeni bir Access Token üret
+        String token = jwtUtils.generateTokenFromUsername(user.getEmail());
+
+        // 6. Yanıtı hazırla
+        AuthResponse response = AuthResponse.builder()
+                .token(token)
+                .refreshToken(requestRefreshToken)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .facilityId(user.getFacility() != null ? user.getFacility().getId() : null)
+                .build();
+
+        return RootEntity.ok(response);
     }
 
     @PostMapping("/relative/send-otp")

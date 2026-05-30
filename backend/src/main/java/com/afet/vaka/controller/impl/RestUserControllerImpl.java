@@ -16,7 +16,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/v1/users")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'FACILITY_ADMIN')")
 public class RestUserControllerImpl implements IRestUserController {
 
     @Autowired
@@ -42,7 +42,7 @@ public class RestUserControllerImpl implements IRestUserController {
 
     @GetMapping
     @Override
-    public RootEntity<List<DtoUser>> getAllUsers() {
-        return RootEntity.ok(userService.getAllUsers());
+    public RootEntity<List<DtoUser>> getAllUsers(@org.springframework.security.core.annotation.AuthenticationPrincipal com.afet.vaka.service.impl.UserServiceImpl.UserDetailsImpl currentUser) {
+        return RootEntity.ok(userService.getAllUsers(currentUser));
     }
 }

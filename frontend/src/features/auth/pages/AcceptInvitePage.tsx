@@ -26,7 +26,7 @@ export const AcceptInvitePage: React.FC = () => {
       }
 
       try {
-        await axios.get(`http://localhost:8080/api/v1/invitations/verify/${token}`);
+        await axios.get(`/api/v1/invitations/verify/${token}`);
         setStatus('valid');
       } catch (error: any) {
         setStatus('invalid');
@@ -52,7 +52,7 @@ export const AcceptInvitePage: React.FC = () => {
     setErrorMessage('');
 
     try {
-      await axios.post('http://localhost:8080/api/v1/invitations/accept', {
+      await axios.post('/api/v1/invitations/accept', {
         token,
         password
       });

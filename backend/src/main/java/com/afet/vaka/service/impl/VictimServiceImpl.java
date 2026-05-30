@@ -61,11 +61,17 @@ public class VictimServiceImpl implements IVictimService {
             throw new AccessDeniedException("Herhangi bir tesise atanmadığınız için vaka giremezsiniz.");
         }
 
-        Facility facility = facilityRepository.findById(currentUser.getFacilityId())
-                .orElseThrow(() -> new RuntimeException("Tesis bulunamadı"));
+        java.util.Optional<Facility> facilityOpt = facilityRepository.findById(currentUser.getFacilityId());
+        if (!facilityOpt.isPresent()) {
+            throw new RuntimeException("Tesis bulunamadı");
+        }
+        Facility facility = facilityOpt.get();
 
-        User creator = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+        java.util.Optional<User> creatorOpt = userRepository.findById(currentUser.getId());
+        if (!creatorOpt.isPresent()) {
+            throw new RuntimeException("Kullanıcı bulunamadı");
+        }
+        User creator = creatorOpt.get();
 
         Victim victim = Victim.builder()
                 .caseNumber(generateCaseNumber())
@@ -114,8 +120,11 @@ public class VictimServiceImpl implements IVictimService {
     @Override
     @Transactional
     public DtoVictim updateVictim(UUID id, DtoVictimIU input, UserDetailsImpl currentUser) {
-        Victim victim = victimRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vaka bulunamadı"));
+        java.util.Optional<Victim> victimOpt = victimRepository.findById(id);
+        if (!victimOpt.isPresent()) {
+            throw new RuntimeException("Vaka bulunamadı");
+        }
+        Victim victim = victimOpt.get();
 
         checkAccess(victim, currentUser);
 
@@ -156,8 +165,11 @@ public class VictimServiceImpl implements IVictimService {
 
     @Override
     public DtoVictim getVictimById(UUID id, UserDetailsImpl currentUser) {
-        Victim victim = victimRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vaka bulunamadı"));
+        java.util.Optional<Victim> victimOpt = victimRepository.findById(id);
+        if (!victimOpt.isPresent()) {
+            throw new RuntimeException("Vaka bulunamadı");
+        }
+        Victim victim = victimOpt.get();
         checkAccess(victim, currentUser);
         return mapToDto(victim);
     }
@@ -169,16 +181,24 @@ public class VictimServiceImpl implements IVictimService {
             throw new AccessDeniedException("Sadece kendi tesisinize ait vakaları görebilirsiniz.");
         }
 
-        return victimRepository.findByFacilityIdAndIsResolvedFalse(facilityId).stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+        List<Victim> victims = victimRepository.findByFacilityIdAndIsResolvedFalse(facilityId);
+        List<DtoVictim> dtos = new java.util.ArrayList<>();
+        
+        for (Victim v : victims) {
+            dtos.add(mapToDto(v));
+        }
+        
+        return dtos;
     }
 
     @Override
     @Transactional
     public void resolveVictim(UUID id, UserDetailsImpl currentUser) {
-        Victim victim = victimRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vaka bulunamadı"));
+        java.util.Optional<Victim> victimOpt = victimRepository.findById(id);
+        if (!victimOpt.isPresent()) {
+            throw new RuntimeException("Vaka bulunamadı");
+        }
+        Victim victim = victimOpt.get();
         
         checkAccess(victim, currentUser);
         
@@ -191,7 +211,9 @@ public class VictimServiceImpl implements IVictimService {
     public Page<VictimSearchResult> searchVictims(VictimSearchCriteria criteria, Pageable pageable, String relativeId) {
         Page<Object[]> scoredVictims = victimRepository.searchAndScoreVictims(criteria, pageable);
 
-        List<VictimSearchResult> results = scoredVictims.getContent().stream().map(obj -> {
+        List<VictimSearchResult> results = new java.util.ArrayList<>();
+        
+        for (Object[] obj : scoredVictims.getContent()) {
             Victim victim = (Victim) obj[0];
             Double rawScore = (Double) obj[1];
             Integer totalPossibleScore = (Integer) obj[2];
@@ -206,17 +228,22 @@ public class VictimServiceImpl implements IVictimService {
             double finalMatchPercentage = totalPossible > 0 ? (totalEarned / totalPossible) * 100.0 : 100.0;
             int matchedCount = (int) Math.round((finalMatchPercentage / 100.0) * providedCriteriaCount);
             
-            return VictimSearchResult.builder()
+            results.add(VictimSearchResult.builder()
                     .victim(mapToDto(victim))
                     .matchedCriteriaCount(matchedCount)
                     .totalProvidedCriteriaCount(providedCriteriaCount)
                     .matchScore(Math.round(finalMatchPercentage * 100.0) / 100.0) // 2 decimal places
-                    .build();
-        }).collect(Collectors.toList());
+                    .build());
+        }
 
         // Log the search if it's a relative session
-        relativeSessionRepository.findById(UUID.fromString(relativeId)).ifPresent(session -> {
-            List<UUID> matchedIds = results.stream().map(r -> r.getVictim().getId()).collect(Collectors.toList());
+        java.util.Optional<RelativeSession> sessionOpt = relativeSessionRepository.findById(UUID.fromString(relativeId));
+        if (sessionOpt.isPresent()) {
+            RelativeSession session = sessionOpt.get();
+            List<UUID> matchedIds = new java.util.ArrayList<>();
+            for (VictimSearchResult r : results) {
+                matchedIds.add(r.getVictim().getId());
+            }
 
             SearchLog log = SearchLog.builder()
                     .relativeSession(session)
@@ -226,7 +253,7 @@ public class VictimServiceImpl implements IVictimService {
                     .build();
             
             searchLogRepository.save(log);
-        });
+        }
 
         return new PageImpl<>(results, pageable, scoredVictims.getTotalElements());
     }
@@ -289,11 +316,19 @@ public class VictimServiceImpl implements IVictimService {
     }
     private <E extends Enum<E>> List<String> mapEnumsToStrings(List<E> enums) {
         if (enums == null) return null;
-        return enums.stream().map(Enum::name).collect(Collectors.toList());
+        List<String> strings = new java.util.ArrayList<>();
+        for (E e : enums) {
+            strings.add(e.name());
+        }
+        return strings;
     }
 
     private <E extends Enum<E>> List<E> mapStringsToEnums(List<String> strings, Class<E> enumClass) {
         if (strings == null) return null;
-        return strings.stream().map(s -> Enum.valueOf(enumClass, s)).collect(Collectors.toList());
+        List<E> enums = new java.util.ArrayList<>();
+        for (String s : strings) {
+            enums.add(Enum.valueOf(enumClass, s));
+        }
+        return enums;
     }
 }

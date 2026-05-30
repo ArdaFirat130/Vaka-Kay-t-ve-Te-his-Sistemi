@@ -89,8 +89,6 @@ public class VictimSearchCriteria {
         if (wearsHeadscarf != null) count++;
         if (upperClothingType != null && !upperClothingType.isEmpty()) count++;
         if (lowerClothingType != null && !lowerClothingType.isEmpty()) count++;
-        if (healthStatus != null) count++;
-        if (chronicConditions != null && !chronicConditions.isEmpty()) count++;
         if (spokenLanguages != null && !spokenLanguages.isEmpty()) count++;
         return count;
     }

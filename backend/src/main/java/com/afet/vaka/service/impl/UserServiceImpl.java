@@ -47,8 +47,13 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
         Facility facility = null;
         if (input.getFacilityId() != null) {
-            facility = facilityRepository.findById(input.getFacilityId())
-                    .orElseThrow(() -> new RuntimeException("Tesis bulunamadı"));
+            java.util.Optional<Facility> facilityOpt = facilityRepository.findById(input.getFacilityId());
+            
+            if (!facilityOpt.isPresent()) {
+                throw new RuntimeException("Tesis bulunamadı");
+            }
+            
+            facility = facilityOpt.get();
         }
 
         User user = User.builder()
@@ -64,8 +69,13 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     @Override
     @Transactional
     public DtoUser updateUser(UUID id, DtoUserIU input) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+        java.util.Optional<User> userOpt = userRepository.findById(id);
+        
+        if (!userOpt.isPresent()) {
+            throw new RuntimeException("Kullanıcı bulunamadı");
+        }
+        
+        User user = userOpt.get();
 
         if (!user.getEmail().equals(input.getEmail()) && userRepository.findByEmail(input.getEmail()).isPresent()) {
             throw new RuntimeException("Bu e-posta adresi zaten kullanılıyor");
@@ -73,8 +83,13 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
         Facility facility = null;
         if (input.getFacilityId() != null) {
-            facility = facilityRepository.findById(input.getFacilityId())
-                    .orElseThrow(() -> new RuntimeException("Tesis bulunamadı"));
+            java.util.Optional<Facility> facilityOpt = facilityRepository.findById(input.getFacilityId());
+            
+            if (!facilityOpt.isPresent()) {
+                throw new RuntimeException("Tesis bulunamadı");
+            }
+            
+            facility = facilityOpt.get();
         }
 
         user.setEmail(input.getEmail());
@@ -89,15 +104,36 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
     @Override
     public DtoUser getUserById(UUID id) {
-        return mapToDto(userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı")));
+        java.util.Optional<User> userOpt = userRepository.findById(id);
+        
+        if (!userOpt.isPresent()) {
+            throw new RuntimeException("Kullanıcı bulunamadı");
+        }
+        
+        return mapToDto(userOpt.get());
     }
 
     @Override
-    public List<DtoUser> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    public List<DtoUser> getAllUsers(UserDetailsImpl currentUser) {
+        boolean isSuperAdmin = currentUser.getAuthorities().contains(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+        
+        List<User> users;
+        if (isSuperAdmin) {
+            users = userRepository.findAll();
+        } else {
+            if (currentUser.getFacilityId() == null) {
+                throw new org.springframework.security.access.AccessDeniedException("Herhangi bir tesise atanmadığınız için personelleri göremezsiniz.");
+            }
+            users = userRepository.findByFacilityId(currentUser.getFacilityId());
+        }
+        
+        List<DtoUser> dtoUsers = new java.util.ArrayList<>();
+        
+        for (User user : users) {
+            dtoUsers.add(mapToDto(user));
+        }
+        
+        return dtoUsers;
     }
 
     private DtoUser mapToDto(User user) {
@@ -123,8 +159,13 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Kullanıcı bulunamadı: " + email));
+        java.util.Optional<User> userOpt = userRepository.findByEmail(email);
+        
+        if (!userOpt.isPresent()) {
+            throw new UsernameNotFoundException("Kullanıcı bulunamadı: " + email);
+        }
+        
+        User user = userOpt.get();
 
         return UserDetailsImpl.build(user);
     }

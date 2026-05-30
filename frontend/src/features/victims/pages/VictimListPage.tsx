@@ -25,7 +25,7 @@ export const VictimListPage: React.FC = () => {
   const fetchVictims = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/v1/victims/facility/my`, {
+      const response = await axios.get(`/api/v1/victims/facility/my`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setVictims(response.data.payload || []);
@@ -43,7 +43,7 @@ export const VictimListPage: React.FC = () => {
     }
 
     try {
-      await axios.put(`http://localhost:8080/api/v1/victims/${id}/resolve`, {}, {
+      await axios.put(`/api/v1/victims/${id}/resolve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStatus({ type: 'success', message: `${caseNumber} başarıyla sonuçlandırıldı.` });

@@ -142,6 +142,12 @@ public class VictimRepositoryImpl implements VictimRepositoryCustom {
             }
         }
 
+        if (criteria.getSpokenLanguages() != null && !criteria.getSpokenLanguages().isEmpty()) {
+            totalPossibleScore += 10;
+            selectSql.append(" + CASE WHEN v.spoken_languages && CAST(:spokenLangs AS text[]) THEN 10.0 ELSE 0.0 END ");
+            selectParams.put("spokenLangs", "{" + criteria.getSpokenLanguages().stream().map(Enum::name).collect(Collectors.joining(",")) + "}");
+        }
+
         selectSql.append(") AS raw_score FROM afet.victims v ");
         
         String finalSql = selectSql.toString() + whereSql.toString() + " ORDER BY raw_score DESC";

@@ -31,7 +31,7 @@ export const RegisterVictimPage = () => {
   useEffect(() => {
     if (id) {
       const token = localStorage.getItem('token');
-      axios.get(`http://localhost:8080/api/v1/victims/${id}`, {
+      axios.get(`/api/v1/victims/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => {
@@ -81,9 +81,30 @@ export const RegisterVictimPage = () => {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          // Yüz hatlarının hafifçe belli olması için blur seviyesini düşürdük
-          ctx.filter = 'blur(6px)'; 
-          ctx.drawImage(img, 0, 0, width, height);
+          // MOBİL UYUMLULUK ÇÖZÜMÜ (Daha az blur, daha belirgin yüz hatları):
+          const tinyCanvas = document.createElement('canvas');
+          const blurScale = 0.08; // %8 oranında küçültme (eski 6px blur hissiyatına daha yakın)
+          tinyCanvas.width = width * blurScale;
+          tinyCanvas.height = height * blurScale;
+          const tinyCtx = tinyCanvas.getContext('2d');
+          
+          if (tinyCtx) {
+            tinyCtx.drawImage(img, 0, 0, tinyCanvas.width, tinyCanvas.height);
+            
+            ctx.imageSmoothingEnabled = true;
+            // Destekleyen tarayıcılarda (Masaüstü vb.) gerçek blur efektini kullan (Eski görünüm)
+            try {
+              ctx.filter = 'blur(4px)';
+            } catch (e) {
+              // Desteklemiyorsa (Mobil Safari vb.) filtre atla, sadece mozaik sündürmesini kullan
+            }
+            ctx.drawImage(tinyCanvas, 0, 0, tinyCanvas.width, tinyCanvas.height, 0, 0, width, height);
+            
+          } else {
+            ctx.filter = 'blur(4px)'; 
+            ctx.drawImage(img, 0, 0, width, height);
+          }
+          
           resolve(canvas.toDataURL('image/jpeg', 0.8));
         } else {
           resolve(base64Image); // Canvas desteklenmiyorsa fallback
@@ -133,13 +154,13 @@ export const RegisterVictimPage = () => {
 
       const token = localStorage.getItem('token');
       if (id) {
-        await axios.put(`http://localhost:8080/api/v1/victims/${id}`, payload, {
+        await axios.put(`/api/v1/victims/${id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setToastMessage('Vaka başarıyla güncellendi!');
         setTimeout(() => { setToastMessage(null); navigate('/victims'); }, 2000);
       } else {
-        await axios.post('http://localhost:8080/api/v1/victims', payload, {
+        await axios.post('/api/v1/victims', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setToastMessage('Vaka başarıyla sisteme kaydedildi!');
